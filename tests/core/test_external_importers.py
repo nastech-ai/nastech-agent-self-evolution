@@ -34,7 +34,7 @@ from evolution.core.external_importers import (
     main,
     ClaudeCodeImporter,
     CopilotImporter,
-    HermesSessionImporter,
+    NasTechSessionImporter,
     RelevanceFilter,
     VALID_DIFFICULTIES,
     MIN_DATASET_SIZE,
@@ -464,10 +464,10 @@ class TestCopilotHelpers:
             events_path.chmod(0o644)  # Restore for cleanup
 
 
-# ── Hermes Session Importer ──────────────────────────────────────────────────
+# ── NasTech Session Importer ──────────────────────────────────────────────────
 
 
-class TestHermesSessionImporter:
+class TestNasTechSessionImporter:
     def test_parses_session_json(self, tmp_path):
         session = {
             "session_id": "test-session",
@@ -482,13 +482,13 @@ class TestHermesSessionImporter:
         }
         (tmp_path / "session_001.json").write_text(json.dumps(session))
 
-        with patch.object(HermesSessionImporter, "SESSION_DIR", tmp_path):
-            msgs = HermesSessionImporter.extract_messages()
+        with patch.object(NasTechSessionImporter, "SESSION_DIR", tmp_path):
+            msgs = NasTechSessionImporter.extract_messages()
 
         assert len(msgs) == 2
         assert msgs[0]["task_input"] == "Fix the bug in auth.py"
         assert msgs[0]["assistant_response"] == "I found the issue and fixed it."
-        assert msgs[0]["source"] == "hermes"
+        assert msgs[0]["source"] == "nastech"
         assert msgs[1]["task_input"] == "Now run the tests"
         assert msgs[1]["assistant_response"] == "All 42 tests passed."
 
@@ -501,8 +501,8 @@ class TestHermesSessionImporter:
         }
         (tmp_path / "s.json").write_text(json.dumps(session))
 
-        with patch.object(HermesSessionImporter, "SESSION_DIR", tmp_path):
-            msgs = HermesSessionImporter.extract_messages()
+        with patch.object(NasTechSessionImporter, "SESSION_DIR", tmp_path):
+            msgs = NasTechSessionImporter.extract_messages()
         assert len(msgs) == 0
 
     def test_filters_secrets(self, tmp_path):
@@ -514,20 +514,20 @@ class TestHermesSessionImporter:
         }
         (tmp_path / "s.json").write_text(json.dumps(session))
 
-        with patch.object(HermesSessionImporter, "SESSION_DIR", tmp_path):
-            msgs = HermesSessionImporter.extract_messages()
+        with patch.object(NasTechSessionImporter, "SESSION_DIR", tmp_path):
+            msgs = NasTechSessionImporter.extract_messages()
         assert len(msgs) == 0
 
     def test_handles_missing_dir(self, tmp_path):
-        with patch.object(HermesSessionImporter, "SESSION_DIR", tmp_path / "nonexistent"):
-            msgs = HermesSessionImporter.extract_messages()
+        with patch.object(NasTechSessionImporter, "SESSION_DIR", tmp_path / "nonexistent"):
+            msgs = NasTechSessionImporter.extract_messages()
         assert msgs == []
 
     def test_handles_malformed_json(self, tmp_path):
         (tmp_path / "bad.json").write_text("{not valid json")
 
-        with patch.object(HermesSessionImporter, "SESSION_DIR", tmp_path):
-            msgs = HermesSessionImporter.extract_messages()
+        with patch.object(NasTechSessionImporter, "SESSION_DIR", tmp_path):
+            msgs = NasTechSessionImporter.extract_messages()
         assert msgs == []
 
     def test_handles_no_assistant_response(self, tmp_path):
@@ -538,8 +538,8 @@ class TestHermesSessionImporter:
         }
         (tmp_path / "s.json").write_text(json.dumps(session))
 
-        with patch.object(HermesSessionImporter, "SESSION_DIR", tmp_path):
-            msgs = HermesSessionImporter.extract_messages()
+        with patch.object(NasTechSessionImporter, "SESSION_DIR", tmp_path):
+            msgs = NasTechSessionImporter.extract_messages()
         assert len(msgs) == 1
         assert msgs[0]["assistant_response"] == ""
 
@@ -551,8 +551,8 @@ class TestHermesSessionImporter:
         }
         (tmp_path / "s.json").write_text(json.dumps(session))
 
-        with patch.object(HermesSessionImporter, "SESSION_DIR", tmp_path):
-            msgs = HermesSessionImporter.extract_messages(limit=3)
+        with patch.object(NasTechSessionImporter, "SESSION_DIR", tmp_path):
+            msgs = NasTechSessionImporter.extract_messages(limit=3)
         assert len(msgs) == 3
 
 
@@ -1167,7 +1167,7 @@ class TestCLI:
                 "--dry-run",
             ], catch_exceptions=False, env={"HOME": str(tmp_path.parent)})
 
-            # _load_skill_text uses ~/.hermes/skills by default, so we patch it
+            # _load_skill_text uses ~/.nastech/skills by default, so we patch it
         # Instead, use the skills_dir parameter approach
         with patch("evolution.core.external_importers._load_skill_text", return_value=("test-skill", "Test skill.")), \
              patch.object(ClaudeCodeImporter, "extract_messages", return_value=[

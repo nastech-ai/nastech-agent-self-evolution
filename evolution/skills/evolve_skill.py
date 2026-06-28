@@ -1,4 +1,4 @@
-"""Evolve a Hermes Agent skill using DSPy + GEPA.
+"""Evolve a NasTech Agent skill using DSPy + GEPA.
 
 Usage:
     python -m evolution.skills.evolve_skill --skill github-code-review --iterations 10
@@ -18,7 +18,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from evolution.core.config import EvolutionConfig, get_hermes_agent_path
+from evolution.core.config import EvolutionConfig, get_nastech_agent_path
 from evolution.core.dataset_builder import SyntheticDatasetBuilder, EvalDataset, GoldenDatasetLoader
 from evolution.core.external_importers import build_dataset_from_external
 from evolution.core.fitness import skill_fitness_metric, LLMJudge, FitnessScore
@@ -40,7 +40,7 @@ def evolve(
     dataset_path: Optional[str] = None,
     optimizer_model: str = "openai/gpt-4.1",
     eval_model: str = "openai/gpt-4.1-mini",
-    hermes_repo: Optional[str] = None,
+    nastech_repo: Optional[str] = None,
     run_tests: bool = False,
     dry_run: bool = False,
 ):
@@ -53,19 +53,19 @@ def evolve(
         judge_model=eval_model,  # Use same model for dataset generation
         run_pytest=run_tests,
     )
-    if hermes_repo:
-        config.hermes_agent_path = Path(hermes_repo)
+    if nastech_repo:
+        config.nastech_agent_path = Path(nastech_repo)
 
     # ── 1. Find and load the skill ──────────────────────────────────────
-    console.print(f"\n[bold cyan]🧬 Hermes Agent Self-Evolution[/bold cyan] — Evolving skill: [bold]{skill_name}[/bold]\n")
+    console.print(f"\n[bold cyan]🧬 NasTech Agent Self-Evolution[/bold cyan] — Evolving skill: [bold]{skill_name}[/bold]\n")
 
-    skill_path = find_skill(skill_name, config.hermes_agent_path)
+    skill_path = find_skill(skill_name, config.nastech_agent_path)
     if not skill_path:
-        console.print(f"[red]✗ Skill '{skill_name}' not found in {config.hermes_agent_path / 'skills'}[/red]")
+        console.print(f"[red]✗ Skill '{skill_name}' not found in {config.nastech_agent_path / 'skills'}[/red]")
         sys.exit(1)
 
     skill = load_skill(skill_path)
-    console.print(f"  Loaded: {skill_path.relative_to(config.hermes_agent_path)}")
+    console.print(f"  Loaded: {skill_path.relative_to(config.nastech_agent_path)}")
     console.print(f"  Name: {skill['name']}")
     console.print(f"  Size: {len(skill['raw']):,} chars")
     console.print(f"  Description: {skill['description'][:80]}...")
@@ -88,7 +88,7 @@ def evolve(
         dataset = build_dataset_from_external(
             skill_name=skill_name,
             skill_text=skill["raw"],
-            sources=["claude-code", "copilot", "hermes"],
+            sources=["claude-code", "copilot", "nastech"],
             output_path=save_path,
             model=eval_model,
         )
@@ -301,11 +301,11 @@ def evolve(
 @click.option("--dataset-path", default=None, help="Path to existing eval dataset (JSONL)")
 @click.option("--optimizer-model", default="openai/gpt-4.1", help="Model for GEPA reflections")
 @click.option("--eval-model", default="openai/gpt-4.1-mini", help="Model for evaluations")
-@click.option("--hermes-repo", default=None, help="Path to hermes-agent repo")
+@click.option("--nastech-repo", default=None, help="Path to nastech-agent repo")
 @click.option("--run-tests", is_flag=True, help="Run full pytest suite as constraint gate")
 @click.option("--dry-run", is_flag=True, help="Validate setup without running optimization")
-def main(skill, iterations, eval_source, dataset_path, optimizer_model, eval_model, hermes_repo, run_tests, dry_run):
-    """Evolve a Hermes Agent skill using DSPy + GEPA optimization."""
+def main(skill, iterations, eval_source, dataset_path, optimizer_model, eval_model, nastech_repo, run_tests, dry_run):
+    """Evolve a NasTech Agent skill using DSPy + GEPA optimization."""
     evolve(
         skill_name=skill,
         iterations=iterations,
@@ -313,7 +313,7 @@ def main(skill, iterations, eval_source, dataset_path, optimizer_model, eval_mod
         dataset_path=dataset_path,
         optimizer_model=optimizer_model,
         eval_model=eval_model,
-        hermes_repo=hermes_repo,
+        nastech_repo=nastech_repo,
         run_tests=run_tests,
         dry_run=dry_run,
     )

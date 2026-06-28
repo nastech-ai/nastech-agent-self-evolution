@@ -1,4 +1,4 @@
-"""Configuration and hermes-agent repo discovery."""
+"""Configuration and nastech-agent repo discovery."""
 
 import os
 from pathlib import Path
@@ -10,8 +10,8 @@ from typing import Optional
 class EvolutionConfig:
     """Configuration for a self-evolution optimization run."""
 
-    # hermes-agent repo path
-    hermes_agent_path: Path = field(default_factory=lambda: get_hermes_agent_path())
+    # nastech-agent repo path
+    nastech_agent_path: Path = field(default_factory=lambda: get_nastech_agent_path())
 
     # Optimization parameters
     iterations: int = 10
@@ -36,37 +36,37 @@ class EvolutionConfig:
 
     # Benchmark gating
     run_pytest: bool = True
-    run_tblite: bool = False  # Expensive — opt-in
-    tblite_regression_threshold: float = 0.02  # Max 2% regression allowed
+    run_benchmarks: bool = False  # Expensive — opt-in
+    benchmark_regression_threshold: float = 0.02  # Max 2% regression allowed
 
     # Output
     output_dir: Path = field(default_factory=lambda: Path("./output"))
     create_pr: bool = True
 
 
-def get_hermes_agent_path() -> Path:
-    """Discover the hermes-agent repo path.
+def get_nastech_agent_path() -> Path:
+    """Discover the nastech-agent repo path.
 
     Priority:
-    1. HERMES_AGENT_REPO env var
-    2. ~/.hermes/hermes-agent (standard install location)
-    3. ../hermes-agent (sibling directory)
+    1. NASTECH_AGENT_REPO env var
+    2. ~/.nastech/nastech-agent (standard install location)
+    3. ../nastech-agent (sibling directory)
     """
-    env_path = os.getenv("HERMES_AGENT_REPO")
+    env_path = os.getenv("NASTECH_AGENT_REPO")
     if env_path:
         p = Path(env_path).expanduser()
         if p.exists():
             return p
 
-    home_path = Path.home() / ".hermes" / "hermes-agent"
+    home_path = Path.home() / ".nastech" / "nastech-agent"
     if home_path.exists():
         return home_path
 
-    sibling_path = Path(__file__).parent.parent.parent / "hermes-agent"
+    sibling_path = Path(__file__).parent.parent.parent / "nastech-agent"
     if sibling_path.exists():
         return sibling_path
 
     raise FileNotFoundError(
-        "Cannot find hermes-agent repo. Set HERMES_AGENT_REPO env var "
-        "or ensure it exists at ~/.hermes/hermes-agent"
+        "Cannot find nastech-agent repo. Set NASTECH_AGENT_REPO env var "
+        "or ensure it exists at ~/.nastech/nastech-agent"
     )

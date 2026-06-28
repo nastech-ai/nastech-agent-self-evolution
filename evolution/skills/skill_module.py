@@ -55,12 +55,12 @@ def load_skill(skill_path: Path) -> dict:
     }
 
 
-def find_skill(skill_name: str, hermes_agent_path: Path) -> Optional[Path]:
-    """Find a skill by name in the hermes-agent skills directory.
+def find_skill(skill_name: str, nastech_agent_path: Path) -> Optional[Path]:
+    """Find a skill by name in the nastech-agent skills directory.
 
     Searches recursively for a SKILL.md in a directory matching the skill name.
     """
-    skills_dir = hermes_agent_path / "skills"
+    skills_dir = nastech_agent_path / "skills"
     if not skills_dir.exists():
         return None
 

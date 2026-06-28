@@ -1,15 +1,15 @@
 """Import session data from external AI tools into golden eval datasets.
 
 Bridges the gap between existing tool usage (Claude Code, GitHub Copilot)
-and Hermes self-evolution by mining real session history for skill-relevant
-evaluation examples. Solves the cold-start problem: new Hermes users don't
+and NasTech self-evolution by mining real session history for skill-relevant
+evaluation examples. Solves the cold-start problem: new NasTech users don't
 have golden datasets, but they do have session history from tools they
 already use.
 
 Supported sources:
   - Claude Code (~/.claude/history.jsonl) — user inputs only
   - GitHub Copilot (~/.copilot/session-state/*/events.jsonl) — full conversations
-  - Hermes Agent (~/.hermes/sessions/*.json) — user + assistant + tool context
+  - NasTech Agent (~/.nastech/sessions/*.json) — user + assistant + tool context
 
 Usage as standalone CLI:
     python -m evolution.core.external_importers \\
@@ -331,10 +331,10 @@ def _parse_copilot_events(
     return pairs
 
 
-class HermesSessionImporter:
-    """Import conversations from Hermes Agent session files.
+class NasTechSessionImporter:
+    """Import conversations from NasTech Agent session files.
 
-    Hermes stores session transcripts as JSON files in ~/.hermes/sessions/.
+    NasTech stores session transcripts as JSON files in ~/.nastech/sessions/.
     Each file contains an OpenAI-format message list with user, assistant,
     and tool messages — providing richer signal than Claude Code (user-only)
     or Copilot (user+assistant without tool context).
@@ -343,11 +343,11 @@ class HermesSessionImporter:
     giving the LLM judge both the task and how it was actually handled.
     """
 
-    SESSION_DIR = Path.home() / ".hermes" / "sessions"
+    SESSION_DIR = Path.home() / ".nastech" / "sessions"
 
     @staticmethod
     def extract_messages(limit: int = 0) -> list[dict]:
-        """Read user/assistant pairs from Hermes session files.
+        """Read user/assistant pairs from NasTech session files.
 
         Args:
             limit: Maximum messages to return (0 = no limit).
@@ -356,12 +356,12 @@ class HermesSessionImporter:
             List of dicts with keys: source, task_input, assistant_response,
             session_id.
         """
-        if not HermesSessionImporter.SESSION_DIR.exists():
+        if not NasTechSessionImporter.SESSION_DIR.exists():
             return []
 
         messages = []
         session_files = sorted(
-            HermesSessionImporter.SESSION_DIR.glob("*.json"),
+            NasTechSessionImporter.SESSION_DIR.glob("*.json"),
             key=lambda p: p.stat().st_mtime,
             reverse=True,  # newest first
         )
@@ -404,7 +404,7 @@ class HermesSessionImporter:
                     continue
 
                 messages.append({
-                    "source": "hermes",
+                    "source": "nastech",
                     "task_input": user_text,
                     "assistant_response": assistant_text,
                     "session_id": session_id,
@@ -632,7 +632,7 @@ def build_dataset_from_external(
     importers = {
         "claude-code": ("Claude Code", ClaudeCodeImporter),
         "copilot": ("Copilot", CopilotImporter),
-        "hermes": ("Hermes Agent", HermesSessionImporter),
+        "nastech": ("NasTech Agent", NasTechSessionImporter),
     }
 
     for source in sources:
@@ -694,15 +694,15 @@ def build_dataset_from_external(
 
 
 def _load_skill_text(skill_name: str, skills_dir: Optional[Path] = None) -> tuple[str, str]:
-    """Load skill text from the installed Hermes skills directory.
+    """Load skill text from the installed NasTech skills directory.
 
     This is used by the standalone CLI only. When called via evolve_skill.py,
     skill loading goes through skill_module.find_skill() + load_skill() instead,
-    which searches the hermes-agent repo path rather than installed skills.
+    which searches the nastech-agent repo path rather than installed skills.
 
     Args:
         skill_name: Name of the skill directory.
-        skills_dir: Override skills directory (default: ~/.hermes/skills).
+        skills_dir: Override skills directory (default: ~/.nastech/skills).
 
     Returns:
         Tuple of (skill_name, skill_file_contents).
@@ -711,7 +711,7 @@ def _load_skill_text(skill_name: str, skills_dir: Optional[Path] = None) -> tupl
         FileNotFoundError: If no SKILL.md found for the given name.
     """
     if skills_dir is None:
-        skills_dir = Path.home() / ".hermes" / "skills"
+        skills_dir = Path.home() / ".nastech" / "skills"
 
     # Try direct match, then subdirectory search
     for pattern in [skill_name, f"*/{skill_name}"]:
@@ -729,7 +729,7 @@ def _load_skill_text(skill_name: str, skills_dir: Optional[Path] = None) -> tupl
 @click.command()
 @click.option(
     "--source",
-    type=click.Choice(["claude-code", "copilot", "hermes", "all"]),
+    type=click.Choice(["claude-code", "copilot", "nastech", "all"]),
     default="all",
     help="Which tool to import from",
 )
@@ -752,13 +752,13 @@ def main(source, skill, output, model, max_examples, dry_run):
 
     console.print(f"  Loaded skill: {skill_name} ({len(skill_text):,} chars)")
 
-    sources = [source] if source != "all" else ["claude-code", "copilot", "hermes"]
+    sources = [source] if source != "all" else ["claude-code", "copilot", "nastech"]
 
     if dry_run:
         importers = {
             "claude-code": ClaudeCodeImporter,
             "copilot": CopilotImporter,
-            "hermes": HermesSessionImporter,
+            "nastech": NasTechSessionImporter,
         }
         for src in sources:
             msgs = importers[src].extract_messages()

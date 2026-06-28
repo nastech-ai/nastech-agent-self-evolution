@@ -1,84 +1,55 @@
-# 🧬 Hermes Agent Self-Evolution
+# 🧬 NasTech Agent Self-Evolution
 
-**Evolutionary self-improvement for [Hermes Agent](https://github.com/NousResearch/hermes-agent).**
+**Evolutionary self-improvement for [NasTech Agent](https://github.com/nastech-ai/NasTech-Agent).**
 
-Hermes Agent Self-Evolution uses DSPy + GEPA (Genetic-Pareto Prompt Evolution) to automatically evolve and optimize Hermes Agent's skills, tool descriptions, system prompts, and code — producing measurably better versions through reflective evolutionary search.
+NasTech Agent Self-Evolution uses DSPy + GEPA (Genetic-Pareto Prompt Evolution) to automatically evolve and optimize NasTech Agent's skills, tool descriptions, system prompts, and code — producing measurably better versions through reflective evolutionary search.
 
-**No GPU training required.** Everything operates via API calls — mutating text, evaluating results, and selecting the best variants. ~$2-10 per optimization run.
-
-## How It Works
-
-```
-Read current skill/prompt/tool ──► Generate eval dataset
-                                        │
-                                        ▼
-                                   GEPA Optimizer ◄── Execution traces
-                                        │                    ▲
-                                        ▼                    │
-                                   Candidate variants ──► Evaluate
-                                        │
-                                   Constraint gates (tests, size limits, benchmarks)
-                                        │
-                                        ▼
-                                   Best variant ──► PR against hermes-agent
-```
-
-GEPA reads execution traces to understand *why* things fail (not just that they failed), then proposes targeted improvements. ICLR 2026 Oral, MIT licensed.
+**No GPU training required.** Everything operates via API calls — optimizing the *text* of prompts, instructions, and few-shot examples, not model weights.
 
 ## Quick Start
 
 ```bash
-# Install
-git clone https://github.com/NousResearch/hermes-agent-self-evolution.git
-cd hermes-agent-self-evolution
+git clone https://github.com/nastech-ai/nastech-agent-self-evolution.git
+cd nastech-agent-self-evolution
 pip install -e ".[dev]"
 
-# Point at your hermes-agent repo
-export HERMES_AGENT_REPO=~/.hermes/hermes-agent
+# Point at your nastech-agent repo
+export NASTECH_AGENT_REPO=~/.nastech/nastech-agent
 
-# Evolve a skill (synthetic eval data)
-python -m evolution.skills.evolve_skill \
-    --skill github-code-review \
-    --iterations 10 \
-    --eval-source synthetic
-
-# Or use real session history from Claude Code, Copilot, and Hermes
-python -m evolution.skills.evolve_skill \
-    --skill github-code-review \
-    --iterations 10 \
-    --eval-source sessiondb
+# Evolve a skill
+python -m evolution.skills.evolve_skill --skill github-code-review --iterations 10
 ```
 
 ## What It Optimizes
 
-| Phase | Target | Engine | Status |
-|-------|--------|--------|--------|
-| **Phase 1** | Skill files (SKILL.md) | DSPy + GEPA | ✅ Implemented |
-| **Phase 2** | Tool descriptions | DSPy + GEPA | 🔲 Planned |
-| **Phase 3** | System prompt sections | DSPy + GEPA | 🔲 Planned |
-| **Phase 4** | Tool implementation code | Darwinian Evolver | 🔲 Planned |
-| **Phase 5** | Continuous improvement loop | Automated pipeline | 🔲 Planned |
+| Tier | Target | Engine | Risk |
+|------|--------|--------|------|
+| 1 | Skill files (SKILL.md) | DSPy + GEPA | Low |
+| 2 | Tool descriptions | DSPy + GEPA | Low |
+| 3 | System prompt sections | DSPy + GEPA | Medium |
+| 4 | Code implementation | Darwinian Evolver | High |
 
-## Engines
+## How It Works
 
-| Engine | What It Does | License |
-|--------|-------------|---------|
-| **[DSPy](https://github.com/stanfordnlp/dspy) + [GEPA](https://github.com/gepa-ai/gepa)** | Reflective prompt evolution — reads execution traces, proposes targeted mutations | MIT |
-| **[Darwinian Evolver](https://github.com/imbue-ai/darwinian_evolver)** | Code evolution with Git-based organisms | AGPL v3 (external CLI only) |
-
-## Guardrails
-
-Every evolved variant must pass:
-1. **Full test suite** — `pytest tests/ -q` must pass 100%
-2. **Size limits** — Skills ≤15KB, tool descriptions ≤500 chars
-3. **Caching compatibility** — No mid-conversation changes
-4. **Semantic preservation** — Must not drift from original purpose
-5. **PR review** — All changes go through human review, never direct commit
-
-## Full Plan
-
-See [PLAN.md](PLAN.md) for the complete architecture, evaluation data strategy, constraints, benchmarks integration, and phased timeline.
+```
+Real Usage Data (SessionDB)
+    │
+    ▼
+Evaluation Dataset Builder
+    │
+    ▼
+DSPy Module (wraps skill/prompt/tool)
+    │
+    ▼
+GEPA Optimizer ◄── Execution Traces
+    │
+    ▼
+Candidate Variants ──► batch_runner (parallel evaluation)
+    │
+    ▼
+Best Valid Variant ──► PR with metrics
+```
 
 ## License
 
-MIT — © 2026 Nous Research
+MIT License — Copyright © 2026 NasTech

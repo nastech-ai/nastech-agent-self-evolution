@@ -10,7 +10,7 @@ name: test-skill
 description: A skill for testing things
 version: 1.0.0
 metadata:
-  hermes:
+  nastech:
     tags: [testing]
 ---
 

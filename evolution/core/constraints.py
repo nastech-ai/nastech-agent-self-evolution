@@ -52,15 +52,15 @@ class ConstraintValidator:
 
         return results
 
-    def run_test_suite(self, hermes_repo: Path) -> ConstraintResult:
-        """Run the full hermes-agent test suite. Must pass 100%."""
+    def run_test_suite(self, nastech_repo: Path) -> ConstraintResult:
+        """Run the full nastech-agent test suite. Must pass 100%."""
         try:
             result = subprocess.run(
                 ["python", "-m", "pytest", "tests/", "-q", "--tb=no"],
                 capture_output=True,
                 text=True,
                 timeout=300,
-                cwd=str(hermes_repo),
+                cwd=str(nastech_repo),
             )
 
             if result.returncode == 0:
