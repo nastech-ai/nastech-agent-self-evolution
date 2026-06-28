@@ -1,8 +1,8 @@
-# Hermes Agent Self-Evolution — Evolutionary Self-Improvement for Hermes Agent
+# NasTech Agent Self-Evolution — Evolutionary Self-Improvement for NasTech Agent
 
 ## Vision
 
-A standalone optimization pipeline that systematically improves Hermes Agent's performance by evolving skills, prompts, tool descriptions, and agent configurations using automated optimization loops. Lives in its own repo (`NousResearch/hermes-agent-self-evolution`), operates ON hermes-agent — not part of it.
+A standalone optimization pipeline that systematically improves NasTech Agent's performance by evolving skills, prompts, tool descriptions, and agent configurations using automated optimization loops. Lives in its own repo (`nastech-ai/nastech-agent-self-evolution`), operates ON nastech-agent — not part of it.
 
 Three complementary engines, unified under one workflow:
 
@@ -85,13 +85,13 @@ GEPA is the star — it's integrated into DSPy, reads execution traces to unders
 └─────────────────────────────────────────────┘
 ```
 
-### Integration Points with Existing Hermes Infrastructure
+### Integration Points with Existing NasTech Infrastructure
 
-| Hermes Component | Role in Self-Improvement |
+| NasTech Component | Role in Self-Improvement |
 |-----------------|------------------------|
 | `batch_runner.py` | Evaluation harness — run agent on test tasks in parallel |
 | `agent/trajectory.py` | Collect execution traces for GEPA's reflective analysis |
-| `hermes_state.py` (SessionDB) | Mine real usage data for evaluation datasets |
+| `nastech_state.py` (SessionDB) | Mine real usage data for evaluation datasets |
 | `skills/` directory | The primary optimization targets |
 | `tools/registry.py` | Tool descriptions to optimize |
 | `agent/prompt_builder.py` | System prompt components to optimize |
@@ -133,10 +133,10 @@ Human Review & Merge
 
 ### Where It Lives
 
-Hermes Agent Self-Evolution lives in its own repo (`NousResearch/hermes-agent-self-evolution`), separate from hermes-agent. It pip-installs or clones hermes-agent to access its infrastructure, and outputs PRs against the hermes-agent repo.
+NasTech Agent Self-Evolution lives in its own repo (`nastech-ai/nastech-agent-self-evolution`), separate from nastech-agent. It pip-installs or clones nastech-agent to access its infrastructure, and outputs PRs against the nastech-agent repo.
 
 ```
-hermes-agent-self-evolution/             # Standalone repo
+nastech-agent-self-evolution/             # Standalone repo
 ├── PLAN.md                             # This file
 ├── README.md                           # Setup, usage, examples
 ├── pyproject.toml                      # Package config + dependencies (dspy, gepa)
@@ -171,12 +171,12 @@ hermes-agent-self-evolution/             # Standalone repo
 
 ```bash
 # Clone and install
-git clone https://github.com/NousResearch/hermes-agent-self-evolution.git
-cd hermes-agent-self-evolution
+git clone https://github.com/nastech-ai/nastech-agent-self-evolution.git
+cd nastech-agent-self-evolution
 pip install -e ".[dev]"
 
-# Point at hermes-agent repo (auto-detected from ~/.hermes/hermes-agent or env var)
-export HERMES_AGENT_REPO=~/.hermes/hermes-agent
+# Point at nastech-agent repo (auto-detected from ~/.nastech/nastech-agent or env var)
+export NASTECH_AGENT_REPO=~/.nastech/nastech-agent
 
 # Phase 1: Evolve a skill
 python -m evolution.skills.evolve_skill \
@@ -200,19 +200,19 @@ python -m evolution.code.evolve_tool_code \
     --bug-issue 742 \
     --iterations 10
 
-# All commands output a PR branch + summary against hermes-agent. Human merges.
+# All commands output a PR branch + summary against nastech-agent. Human merges.
 ```
 
-### Relationship to hermes-agent
+### Relationship to nastech-agent
 
-**hermes-agent-self-evolution operates ON hermes-agent, not inside it.** Zero changes to the agent repo are needed. It reads from the hermes-agent codebase and writes evolved versions to git branches, creating PRs for human review.
+**nastech-agent-self-evolution operates ON nastech-agent, not inside it.** Zero changes to the agent repo are needed. It reads from the nastech-agent codebase and writes evolved versions to git branches, creating PRs for human review.
 
-| hermes-agent Component | How Self-Evolution Uses It |
+| nastech-agent Component | How Self-Evolution Uses It |
 |------------------------|-------------------|
 | `batch_runner.py` | Run agent on eval tasks in parallel |
 | `environments/benchmarks/tblite/` | Benchmark gating |
 | `environments/benchmarks/yc_bench/` | Coherence checks |
-| `hermes_state.py` (SessionDB) | Mine real usage for eval data |
+| `nastech_state.py` (SessionDB) | Mine real usage for eval data |
 | `agent/prompt_builder.py` | Read current prompt sections (read-only) |
 | `tools/registry.py` | Read current tool descriptions (read-only) |
 | `skills/` directory | Read current skills, write evolved versions to branch |
@@ -266,10 +266,10 @@ If a phase doesn't produce meaningful improvements (evolved variants aren't bett
 **Goal:** The agent can optimize any SKILL.md file by running it through GEPA.
 
 **Week 1-2 (Build):**
-- Install DSPy + GEPA, verify they work in Hermes' .venv
+- Install DSPy + GEPA, verify they work in NasTech' .venv
 - Build the skill-as-DSPy-module wrapper (takes a SKILL.md → DSPy module)
 - Build the eval dataset generator (strong model reads skill → generates test cases)
-- Build the GEPA optimization runner (wraps dspy.GEPA with Hermes config)
+- Build the GEPA optimization runner (wraps dspy.GEPA with NasTech config)
 - Unit tests for all components
 
 **Week 2-3 (Run):**
@@ -316,7 +316,7 @@ If a phase doesn't produce meaningful improvements (evolved variants aren't bett
 
    **Source C: Hand-curated golden sets (optional, high-value skills)**
    - Manually written test cases with expected outputs
-   - Stored as JSONL in `~/.hermes/evolution/datasets/<skill-name>/golden.jsonl`
+   - Stored as JSONL in `~/.nastech/evolution/datasets/<skill-name>/golden.jsonl`
    - Highest quality signal but requires manual effort — reserve for critical skills
 
    **Source D: Skill-specific auto-evaluation (where applicable)**
@@ -332,7 +332,7 @@ If a phase doesn't produce meaningful improvements (evolved variants aren't bett
    - Was it concise (within token budget)? (0-1)
    - Rubrics are skill-specific and stored alongside the eval dataset
 
-3. **GEPA optimization runner** — Wraps `dspy.GEPA` with Hermes-specific config:
+3. **GEPA optimization runner** — Wraps `dspy.GEPA` with NasTech-specific config:
    - Uses batch_runner for parallel evaluation
    - Captures execution traces (trajectories) for GEPA's reflective analysis
    - Saves snapshots for pause/resume
@@ -345,16 +345,16 @@ If a phase doesn't produce meaningful improvements (evolved variants aren't bett
 **CLI interface:**
 ```bash
 # Evolve a skill with auto-generated eval data from session history
-hermes evolve skill github-code-review --iterations 10
+nastech evolve skill github-code-review --iterations 10
 
 # Evolve with a custom evaluation dataset
-hermes evolve skill arxiv --dataset eval_tasks.jsonl --iterations 5
+nastech evolve skill arxiv --dataset eval_tasks.jsonl --iterations 5
 
 # Compare baseline vs evolved
-hermes evolve compare github-code-review --version latest
+nastech evolve compare github-code-review --version latest
 
 # Deploy evolved version
-hermes evolve deploy github-code-review --version 3
+nastech evolve deploy github-code-review --version 3
 ```
 
 **Or as agent tool calls:**
@@ -589,7 +589,7 @@ Actual Python source code in `tools/*.py` files. This is the highest-risk tier �
 
 **Prerequisite:** Phases 1-4 proven — manual optimization works reliably for skills, tools, prompts, and code. Now we automate it.
 
-**Week 1 (Build):** Build performance monitor (tracks skill success rates, tool selection accuracy, benchmark scores over time). Build auto-triage logic (ranks optimization targets by impact × frequency). Wire up to Hermes cron scheduler.
+**Week 1 (Build):** Build performance monitor (tracks skill success rates, tool selection accuracy, benchmark scores over time). Build auto-triage logic (ranks optimization targets by impact × frequency). Wire up to NasTech cron scheduler.
 
 **Week 2 (Deploy & Monitor):** Set up weekly benchmark runs via cron. Set up threshold-triggered optimization (when a skill's failure rate exceeds X%, auto-trigger GEPA). All automated PRs still require human merge.
 
@@ -685,7 +685,7 @@ Evolved text must stay within strict size budgets:
 The optimizer's fitness function applies a **length penalty** — variants that approach the limit get scored lower even if they're otherwise better. This prevents evolutionary drift toward verbose solutions.
 
 ### 3. Prompt Caching Compatibility
-Hermes relies on prompt caching to keep costs manageable. Evolved content must not break this:
+NasTech relies on prompt caching to keep costs manageable. Evolved content must not break this:
 
 - **Skills**: Injected as user messages at conversation start. Evolved skills are deployed as new versions — they take effect on NEW sessions only, never mid-conversation.
 - **Tool descriptions**: Part of the tool schema sent with every API call. Changes take effect on next session start. Schema structure (parameter names, types) must NOT change — only the description text.
@@ -750,7 +750,7 @@ See the **Constraints & Guardrails** section above for the full enforcement list
 - DSPy: MIT ✓ (can import and integrate freely)
 - GEPA: MIT ✓ (integrated into DSPy, also standalone `pip install gepa`)
 - Darwinian Evolver: AGPL v3 ⚠️ (external CLI only, no Python imports)
-- All Hermes-native code: MIT ✓
+- All NasTech-native code: MIT ✓
 
 ---
 
